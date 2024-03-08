@@ -1,6 +1,7 @@
 import React from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {DeviceEventEmitter, Text, TouchableOpacity, View} from 'react-native';
 import {fonts} from '../fonts';
+import {storage} from '../store/Storage';
 
 interface Props {
   showUnlink: boolean;
@@ -9,6 +10,12 @@ interface Props {
 }
 
 const Unlink: React.FC<Props> = ({showUnlink, deleteID, setShowUnlink}) => {
+  const unlinkCard = () => {
+    const jsonStorage = JSON.parse(storage.getString('cards')!);
+    delete jsonStorage[deleteID.uid];
+    storage.set('cards', JSON.stringify(jsonStorage) ?? '');
+    DeviceEventEmitter.emit('Added');
+  };
   return (
     <>
       <TouchableOpacity
@@ -23,11 +30,15 @@ const Unlink: React.FC<Props> = ({showUnlink, deleteID, setShowUnlink}) => {
           Unlink Beep Card
         </Text>
         <Text className="mt-3 text-base" style={fonts.montSemi}>
-          Delete Your Card "Card Name"?
+          Delete Your Card "{deleteID.name}"?
         </Text>
-        <TouchableOpacity className="bg-[#202758] px-4 py-1 rounded-xl mt-4">
-          <Text className="text-lg text-center text-white" style={fonts.bebas}>
-            Delete
+        <TouchableOpacity
+          className="bg-[#716bff] px-4 py-1 rounded-xl mt-4"
+          onPress={unlinkCard}>
+          <Text
+            className="text-lg text-center text-white tracking-widest"
+            style={fonts.bebas}>
+            Unlink
           </Text>
         </TouchableOpacity>
       </View>

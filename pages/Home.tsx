@@ -195,8 +195,10 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                   <TouchableOpacity
                     className="absolute top-4 right-16 rounded-full translate-y-[-7px] p-1 z-30"
                     onPress={() => {
+                      let storg = storage.getString('cards');
+                      let storgJason = JSON.parse(storg!);
                       setShowUnlink(true);
-                      setDeleteID({uid: card.uid, name: ''});
+                      setDeleteID({uid: card.uid, name: storgJason[card.uid]});
                     }}>
                     <Thrash width={30} height={30} stroke={'#ff6c6c'} />
                   </TouchableOpacity>

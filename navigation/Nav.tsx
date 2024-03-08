@@ -123,15 +123,21 @@ const Nav: React.FC<Props> = ({
           <View
             className={
               'absolute ' +
-              (Object.keys(selectedCard).length === 0 ? 'opacity-30' : '')
+              (selectedCard !== undefined
+                ? Object.keys(selectedCard).length === 0
+                  ? 'opacity-30'
+                  : ''
+                : 'opacity-30')
             }>
             <QRIcon
               onPress={
-                Object.keys(selectedCard).length !== 0
-                  ? () => {
-                      setCurrTab('QR');
-                      navigation.navigate('QR');
-                    }
+                selectedCard !== undefined
+                  ? Object.keys(selectedCard).length !== 0
+                    ? () => {
+                        setCurrTab('QR');
+                        navigation.navigate('QR');
+                      }
+                    : () => {}
                   : () => {}
               }
             />
