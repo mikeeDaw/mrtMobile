@@ -1,13 +1,7 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
+  DeviceEventEmitter,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -25,35 +19,19 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {RootStackParamList} from './types/Types';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import LoggedView from './pages/LoggedView';
+import Pin from './pages/Pin';
+import Register from './pages/Register';
+import {storage} from './store/Storage';
+import QrView from './pages/QrView';
+
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -62,37 +40,66 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const Stack = createNativeStackNavigator<RootStackParamList>();
+  const BotTab = createBottomTabNavigator();
+  const [logged, setLogged] = useState(false);
+
+  useEffect(() => {
+    DeviceEventEmitter.addListener('SetLogOut', () => {
+      setLogged(false);
+    });
+    DeviceEventEmitter.addListener('SetLogIn', () => {
+      setLogged(true);
+    });
+    return () => {
+      DeviceEventEmitter.removeAllListeners('SetLogOut');
+      DeviceEventEmitter.removeAllListeners('SetLogIn');
+    };
+  }, []);
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <>
+      <NavigationContainer>
+        {logged ? (
+          <Stack.Navigator>
+            <Stack.Screen name="PinSuccess" options={{headerShown: false}}>
+              {props => <LoggedView {...props} setLog={setLogged} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        ) : (
+          <Stack.Navigator
+            initialRouteName={storage.getString('PIN') ? 'Login' : 'Register'}>
+            <Stack.Screen name="Login" options={{headerShown: false}}>
+              {props => <Pin {...props} />}
+            </Stack.Screen>
+
+            <Stack.Screen name="Register" options={{headerShown: false}}>
+              {props => <Register {...props} setLog={setLogged} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        )}
+        {/* <Stack.Navigator
+          initialRouteName={storage.getString('PIN') ? 'Register' : 'Login'}>
+          {logged ? (
+            <Stack.Screen name="PinSuccess" options={{headerShown: false}}>
+              {props => <LoggedView {...props} setLog={setLogged} />}
+            </Stack.Screen>
+          ) : (
+            <>
+              <Stack.Screen
+                name="Login"
+                options={{headerShown: false}}
+                initialParams={{setLog: setLogged}}>
+                {props => <Pin {...props} setLog={setLogged} />}
+              </Stack.Screen>
+
+              <Stack.Screen name="Register" options={{headerShown: false}}>
+                {props => <Register />}
+              </Stack.Screen>
+            </>
+          )}
+        </Stack.Navigator> */}
+      </NavigationContainer>
+    </>
   );
 }
 
