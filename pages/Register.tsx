@@ -27,16 +27,15 @@ const Register = ({navigation, setLog}: RegProps) => {
 
   const handleChange = (text: string, idx: number) => {
     let tmpArr = pin;
-    tmpArr[idx] = text !== '' ? Number(text) : undefined;
+    let regex = /^\d+$/;
+    tmpArr[idx] = regex.test(text) ? Number(text) : undefined;
     setPin(tmpArr);
-    console.log(pin, savedPin, 'X');
 
     if (pin.every(item => item !== undefined)) {
       if (savedPin !== '') {
         console.log(pin.join(''));
         if (savedPin === pin.join('')) {
           storage.set('PIN', savedPin);
-          console.log(savedPin, pin.join(''));
           navigation.navigate('Login');
         } else setAttempt(true);
       }

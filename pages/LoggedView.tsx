@@ -8,17 +8,20 @@ import CardsView from './CardsView';
 import Settings from './Settings';
 import {LogProps, RootStackParamList} from '../types/Types';
 import {storage} from '../store/Storage';
-import {DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, AppState} from 'react-native';
 import QrView from './QrView';
 
 const LoggedView = ({navigation, setLog}: LogProps) => {
   const BotTab = createBottomTabNavigator<RootStackParamList>();
   const [selectedTab, setSelectedTab] = useState('Home');
   const [beepCards, setBeepCards] = useState<any[]>([]);
-  const [selectedID, setSelectedID] = useState<any>({});
+  const [selectedID, setSelectedID] = useState<any | null>(null);
   const [addFlag, setAddFlag] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
 
   const getCards = async () => {
+    console.log(selectedID, 'INITAL SELECT');
+    console.log(storage.getString('selected'), 'sa storage');
     const cards = storage.getString('cards')
       ? JSON.parse(storage.getString('cards')!)
       : {};
@@ -43,20 +46,26 @@ const LoggedView = ({navigation, setLog}: LogProps) => {
         if (jason.status === 200) {
           const data = await jason.json();
           setBeepCards(data.data);
-          selectedID ?? setSelectedID(data.data[0]);
-          console.log(Object.keys(selectedID).length);
-          console.log(data.data);
-          if (Object.keys(selectedID).length !== 0) {
+
+          //Object.keys(selectedID).length === 0
+          //  ? setSelectedID(data.data[0])
+          //  : {};
+          console.log(data.data, 'BEEps');
+          if (storage.getString('selected')) {
             let theCard = data.data.find(
-              (item: any) => item.uid === selectedID.uid,
+              (item: any) => item.uid === storage.getString('selected'),
             );
+            console.log('nasa if', theCard);
+            console.log('nasa else', data.data[0]);
             setSelectedID(theCard);
           } else {
+            console.log('nasa else');
             setSelectedID(data.data[0]);
           }
         }
       })
       .catch(error => console.log(error.message));
+    console.log(selectedID, '******');
   };
 
   useEffect(() => {
@@ -75,6 +84,34 @@ const LoggedView = ({navigation, setLog}: LogProps) => {
       DeviceEventEmitter.removeAllListeners('Added');
     };
   }, []);
+
+  useEffect(() => {
+    const navigateToPinScreen = () => {
+      //navigation.navigate('Pin');
+      setLog(false);
+    };
+
+    const appInactiveHandler = () => {
+      navigateToPinScreen();
+    };
+
+    const handleAppStateChange = (nextAppState: any) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        appInactiveHandler(); // Reset timer only when going from background/inactive to active
+      }
+      setAppState(nextAppState);
+    };
+
+    const unsubscribe = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    return () => {
+      unsubscribe.remove(); // Use remove method to unsubscribe
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appState, navigation]);
 
   return (
     <>

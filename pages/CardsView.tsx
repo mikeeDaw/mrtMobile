@@ -54,7 +54,7 @@ const CardsView = ({selectedID}: CardProps) => {
             <View className="w-full h-full flex flex-col items-center px-10">
               <View className="flex flex-col w-full items-center mb-4">
                 <Text className="text-lg" style={fonts.montSemi}>
-                  {Object.keys(selectedID).length !== 0
+                  {selectedID
                     ? JSON.parse(storage.getString('cards')!)[selectedID.uid]
                     : '- Select a Card -'}
                 </Text>

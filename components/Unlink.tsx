@@ -2,19 +2,30 @@ import React from 'react';
 import {DeviceEventEmitter, Text, TouchableOpacity, View} from 'react-native';
 import {fonts} from '../fonts';
 import {storage} from '../store/Storage';
+import {Toast} from 'toastify-react-native';
 
 interface Props {
   showUnlink: boolean;
   deleteID: any;
   setShowUnlink: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelected: React.Dispatch<any>;
 }
 
-const Unlink: React.FC<Props> = ({showUnlink, deleteID, setShowUnlink}) => {
+const Unlink: React.FC<Props> = ({
+  showUnlink,
+  deleteID,
+  setShowUnlink,
+  setSelected,
+}) => {
   const unlinkCard = () => {
     const jsonStorage = JSON.parse(storage.getString('cards')!);
     delete jsonStorage[deleteID.uid];
     storage.set('cards', JSON.stringify(jsonStorage) ?? '');
+    setSelected({});
+    storage.delete('selected');
     DeviceEventEmitter.emit('Added');
+    setShowUnlink(false);
+    Toast.success(`Unlink was Successful.`, 'top');
   };
   return (
     <>

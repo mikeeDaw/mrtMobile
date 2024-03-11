@@ -18,6 +18,7 @@ import {storage} from '../store/Storage';
 import {HomeProps} from '../types/Types';
 import Thrash from '../svg/Thrash';
 import Unlink from '../components/Unlink';
+import ToastManager, {Toast} from 'toastify-react-native';
 
 const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
   const [addUID, setAddUID] = useState('');
@@ -54,7 +55,6 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
-      //setFlag(!addFlag);
       DeviceEventEmitter.emit('Added');
     }, 2000);
     setRefreshing(false);
@@ -62,37 +62,56 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
   }, []);
 
   const handleAddCard = async () => {
+    let tmpJason = storage.getString('cards') ?? undefined;
+    let convJason = tmpJason ? JSON.parse(tmpJason) : {};
+    let alreadyLinked = Object.keys(convJason).find(key => key !== addUID);
+
+    if (!alreadyLinked && Object.keys(convJason).length !== 0) {
+      Toast.error(`Card Is Already Linked.`, 'top');
+      return;
+    }
+
     if (addUID !== '' && addName !== '') {
       let resp = await getCard();
+      console.log(resp);
       if (resp.status === 200) {
-        let tmpJason = storage.getString('cards') ?? undefined;
-        let convJason = tmpJason ? JSON.parse(tmpJason) : {};
         let cardJason = {...convJason, [addUID]: addName};
         storage.set('cards', JSON.stringify(cardJason));
-        console.log(cardJason);
+        DeviceEventEmitter.emit('Added');
+        console.log(cardJason, 'cardJason');
         setAddName('');
         setAddUID('');
         setShowAdd(false);
+        setSelectedID(null);
         Keyboard.dismiss();
-
-        DeviceEventEmitter.emit('Added');
+        Toast.success(`${addName} was Linked!`, 'top');
       } else {
-        console.log('nagerror');
+        Toast.error(`Card Not Found.`, 'top');
       }
     } else {
-      console.log('missing input');
+      Toast.error(`Missing Input.`, 'top');
     }
   };
 
   return (
     <SafeAreaView>
       <View className="relative h-[100vh] bg-[#F9F9F9]">
+        <View className="z-50">
+          <ToastManager
+            position={'top'}
+            positionValue={80}
+            theme={'dark'}
+            duration={2500}
+          />
+        </View>
+
         {/* Unlink Card */}
         {showUnlink && (
           <Unlink
             setShowUnlink={setShowUnlink}
             showUnlink={showUnlink}
             deleteID={deleteID}
+            setSelected={setSelectedID}
           />
         )}
 
@@ -147,7 +166,7 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                   style={fonts.montSemi}
                   keyboardType="default"
                   maxLength={15}
-                  placeholder="(Optional)"
+                  placeholder="*Required"
                   onChangeText={text => handleChangeName(text)}
                   value={addName}
                 />
@@ -181,16 +200,17 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                   className="w-full bg-[#716bff] h-[160px] relative rounded-3xl overflow-hidden py-2 px-3 mb-2"
                   key={idx + 1000}
                   onPress={() => {
+                    storage.set('selected', card.uid);
                     setSelectedID(card);
                   }}>
                   <View
                     className={
                       'flex w-[27px] z-30 h-[27px] p-1.5 bg-white absolute right-5 top-4 justify-center items-center rounded-full ' +
-                      (selectedID.uid === card.uid
+                      (selectedID && selectedID.uid === card.uid
                         ? 'bg-emerald-500'
                         : 'bg-[#00000020] border border-[#00000030] ')
                     }>
-                    {selectedID.uid === card.uid && <Check />}
+                    {selectedID && selectedID.uid === card.uid && <Check />}
                   </View>
                   <TouchableOpacity
                     className="absolute top-4 right-16 rounded-full translate-y-[-7px] p-1 z-30"
@@ -198,7 +218,10 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                       let storg = storage.getString('cards');
                       let storgJason = JSON.parse(storg!);
                       setShowUnlink(true);
-                      setDeleteID({uid: card.uid, name: storgJason[card.uid]});
+                      setDeleteID({
+                        uid: card.uid,
+                        name: storgJason[card.uid],
+                      });
                     }}>
                     <Thrash width={30} height={30} stroke={'#ff6c6c'} />
                   </TouchableOpacity>

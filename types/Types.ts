@@ -8,7 +8,9 @@ export type RootStackParamList = {
     setSelectedID: React.Dispatch<any>;
   };
   Test: undefined;
-  PinSuccess: {setLog: React.Dispatch<React.SetStateAction<boolean>>};
+  PinSuccess: {
+    setLog: React.Dispatch<React.SetStateAction<boolean>>;
+  };
   Login: undefined;
   Settings: undefined;
   QR: {

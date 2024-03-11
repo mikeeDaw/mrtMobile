@@ -105,23 +105,27 @@ const QrView = ({navigation, cardData}: QRProps) => {
       }
     } else {
       if (cardData.tapped) {
-        const data = await fetch('http://10.200.53.115:4000/mobile/tapOut', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
+        const data = await fetch(
+          'https://mrt-line-3-api.onrender.com/mobile/tapOut',
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              uid: cardData.uid,
+              currentStation: originStat.toUpperCase(),
+              desc: `${cardData?.origin.toUpperCase()} - ${originStat.toUpperCase()}`,
+            }),
           },
-          body: JSON.stringify({
-            uid: cardData.uid,
-            currentStation: originStat.toUpperCase(),
-            desc: `${cardData?.origin.toUpperCase()} - ${originStat.toUpperCase()}`,
-          }),
-        }).then(async jason => {
+        ).then(async jason => {
           if (jason.status === 200) {
             let result = await jason.json();
             DeviceEventEmitter.emit('Added');
             Toast.success(`Tapped Out Successfully.`, 'top');
             setTapOutShow(true);
             setTapOutVal(result);
+            console.log('Result is', result._doc.balance);
           } else if (jason.status === 401) {
             Toast.error(`Insufficient Balance`, 'top');
           } else {
