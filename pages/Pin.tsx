@@ -81,12 +81,6 @@ const Pin = ({navigation}: LoginProps) => {
           <KeyIcon keyHeight={70} keyWidth={70} />
         </View>
 
-        {/* <View className="absolute top-5 left-7 bg-cyan-100 px-3 py-1.5 rounded-full z-0">
-          <Text className="text-[16px] text-[#252525]" style={fonts.bebas}>
-            MRT Line 3
-          </Text>
-        </View> */}
-
         <Text
           className="text-4xl text-black mt-7 tracking-wider"
           style={fonts.bebas}>
@@ -96,7 +90,7 @@ const Pin = ({navigation}: LoginProps) => {
         <Text
           className="text-[16px] mt-4 text-[#888888]"
           style={fonts.montSemi}>
-          Please enter your 4-digit passcode to your account.
+          Please enter your 5-digit passcode to your account.
         </Text>
 
         {/* PIN Area */}

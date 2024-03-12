@@ -169,7 +169,10 @@ const QrView = ({navigation, cardData}: QRProps) => {
         corners![3].x >= 489 &&
         corners![3].y <= 497
       ) {
-        if (codes[0].value!.startsWith('{') && codes[0].value!.endsWith('}')) {
+        if (
+          codes[0].value!.startsWith('{"mrtOnline":"s94jdIsBS032hu7"') &&
+          codes[0].value!.endsWith('}')
+        ) {
           const value = JSON.parse(codes[0].value!);
           setOriginStat(value.station);
           setPassMethod(value.pass);
