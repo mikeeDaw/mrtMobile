@@ -40,7 +40,7 @@ const TimeOut: React.FC<UserInactivityWrapperProps> = ({
     <UserInactivityContext.Provider value={{resetTimer}}>
       <UserInactivity
         key={timerKey} // This key change will reset the timer
-        timeForInactivity={400} // 60 seconds of inactivity
+        timeForInactivity={60} // 60 seconds of inactivity
         onHandleActiveInactive={() => {
           console.log('User inactive. Logging out...');
           setShowTimeOut(true);
