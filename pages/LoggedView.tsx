@@ -20,7 +20,6 @@ const LoggedView = ({navigation, setLog}: LogProps) => {
   const [appState, setAppState] = useState(AppState.currentState);
 
   const getCards = async () => {
-    console.log(selectedID, 'INITAL SELECT');
     console.log(storage.getString('selected'), 'sa storage');
     const cards = storage.getString('cards')
       ? JSON.parse(storage.getString('cards')!)
@@ -47,25 +46,17 @@ const LoggedView = ({navigation, setLog}: LogProps) => {
           const data = await jason.json();
           setBeepCards(data.data);
 
-          //Object.keys(selectedID).length === 0
-          //  ? setSelectedID(data.data[0])
-          //  : {};
-          console.log(data.data, 'BEEps');
           if (storage.getString('selected')) {
             let theCard = data.data.find(
               (item: any) => item.uid === storage.getString('selected'),
             );
-            console.log('nasa if', theCard);
-            console.log('nasa else', data.data[0]);
             setSelectedID(theCard);
           } else {
-            console.log('nasa else');
             setSelectedID(data.data[0]);
           }
         }
       })
       .catch(error => console.log(error.message));
-    console.log(selectedID, '******');
   };
 
   useEffect(() => {
@@ -87,7 +78,6 @@ const LoggedView = ({navigation, setLog}: LogProps) => {
 
   useEffect(() => {
     const navigateToPinScreen = () => {
-      //navigation.navigate('Pin');
       setLog(false);
     };
 

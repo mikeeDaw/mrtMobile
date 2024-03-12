@@ -63,14 +63,26 @@ const QrView = ({navigation, cardData}: QRProps) => {
   };
 
   const scanning = async () => {
-    console.log(
-      cardData.uid,
-      cardData.balance,
-      cardData.tapped,
-      cardData.origin,
-      passMethod,
-      originStat,
-    );
+    // Check for Maintenance
+    const constantsDoc = await fetch(
+      `https://mrt-line-3-api.onrender.com/constants/get`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    ).then(async jason => {
+      if (jason.status === 200) {
+        return await jason.json();
+      }
+    });
+    if (constantsDoc.maintenance) {
+      Toast.error(`System in Maintenance.`, 'top');
+      return;
+    }
+
+    // Tap Logic
     if (passMethod === 'in') {
       if (!cardData.tapped) {
         const data = await fetch(
@@ -123,9 +135,9 @@ const QrView = ({navigation, cardData}: QRProps) => {
             let result = await jason.json();
             DeviceEventEmitter.emit('Added');
             Toast.success(`Tapped Out Successfully.`, 'top');
-            setTapOutShow(true);
             setTapOutVal(result);
             console.log('Result is', result._doc.balance);
+            setTapOutShow(true);
           } else if (jason.status === 401) {
             Toast.error(`Insufficient Balance`, 'top');
           } else {
@@ -159,11 +171,13 @@ const QrView = ({navigation, cardData}: QRProps) => {
       ) {
         if (codes[0].value!.startsWith('{') && codes[0].value!.endsWith('}')) {
           const value = JSON.parse(codes[0].value!);
-          console.log('OK!', codes[0].value!);
           setOriginStat(value.station);
           setPassMethod(value.pass);
           setTapValue(value);
           setTapModal(true);
+        } else {
+          Toast.error(`Invalid QR Code.`, 'top');
+          setTapModal(false);
         }
       }
 

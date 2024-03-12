@@ -35,6 +35,7 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
   };
 
   const getCard = async () => {
+    console.log('getting....');
     const response = await fetch(
       'https://mrt-line-3-api.onrender.com/beep/getOne',
       {
@@ -48,7 +49,9 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
       .then(async jason => {
         return jason;
       })
-      .catch(error => error);
+      .catch(error => {
+        return error;
+      });
     return response;
   };
 
@@ -58,7 +61,6 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
       DeviceEventEmitter.emit('Added');
     }, 2000);
     setRefreshing(false);
-    console.log('tapos');
   }, []);
 
   const handleAddCard = async () => {
@@ -70,9 +72,10 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
       Toast.error(`Card Is Already Linked.`, 'top');
       return;
     }
-
+    console.log('outside', addUID, addName);
     if (addUID !== '' && addName !== '') {
       let resp = await getCard();
+      console.log('nagwait');
       console.log(resp);
       if (resp.status === 200) {
         let cardJason = {...convJason, [addUID]: addName};
@@ -89,6 +92,7 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
         Toast.error(`Card Not Found.`, 'top');
       }
     } else {
+      console.log('Sa else');
       Toast.error(`Missing Input.`, 'top');
     }
   };
