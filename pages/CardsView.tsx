@@ -6,6 +6,7 @@ import {
   ScrollView,
   RefreshControl,
   DeviceEventEmitter,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Nav from '../navigation/Nav';
@@ -110,51 +111,53 @@ const CardsView = ({selectedID}: CardProps) => {
                       selectedID.transactions
                         .reverse()
                         .map((data: any, idx: any) => (
-                          <View
-                            className="rounded-xl bg-white px-3 py-2 flex flex-row w-full mb-2"
-                            key={idx + 265}>
-                            <View className="flex flex-col w-5/6">
-                              <Text className="text-lg" style={fonts.bebas}>
-                                {new Date(data.date).toLocaleString('en-US', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                }) +
-                                  ' - ' +
-                                  timestamp(data.date)}
-                              </Text>
-                              <Text className="text-xs" style={fonts.montSemi}>
-                                {data.desc}
-                              </Text>
-                              <View className="w-fit mt-3">
-                                <Text className="text-black self-start px-2 py-1 text-[9px] text-white bg-[#101582] rounded-xl">
-                                  MRT 3
+                          <TouchableWithoutFeedback key={idx + 265}>
+                            <View className="rounded-xl bg-white px-3 py-2 flex flex-row w-full mb-2">
+                              <View className="flex flex-col w-5/6">
+                                <Text className="text-lg" style={fonts.bebas}>
+                                  {new Date(data.date).toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                  }) +
+                                    ' - ' +
+                                    timestamp(data.date)}
+                                </Text>
+                                <Text
+                                  className="text-xs"
+                                  style={fonts.montSemi}>
+                                  {data.desc}
+                                </Text>
+                                <View className="w-fit mt-3">
+                                  <Text className="text-black self-start px-2 py-1 text-[9px] text-white bg-[#101582] rounded-xl">
+                                    MRT 3
+                                  </Text>
+                                </View>
+                              </View>
+
+                              <View className="flex justify-end flex-col items-end absolute right-5 bottom-2">
+                                <Text
+                                  className="text-[#565656] text-base translate-y-[5px]"
+                                  style={fonts.bebas}>
+                                  {data.desc.search('Load') === -1
+                                    ? 'Fare'
+                                    : 'Load'}
+                                </Text>
+                                <Text
+                                  className={
+                                    'text-2xl ' +
+                                    (data.desc.search('Load') === -1
+                                      ? 'text-red-500'
+                                      : 'text-emerald-500')
+                                  }
+                                  style={fonts.bebas}>
+                                  {data.desc.search('Load') === -1
+                                    ? `- ₱${data.amount}.00`
+                                    : `+ ₱${data.amount}.00`}
                                 </Text>
                               </View>
                             </View>
-
-                            <View className="flex justify-end flex-col items-end absolute right-5 bottom-2">
-                              <Text
-                                className="text-[#565656] text-base translate-y-[5px]"
-                                style={fonts.bebas}>
-                                {data.desc.search('Load') === -1
-                                  ? 'Fare'
-                                  : 'Load'}
-                              </Text>
-                              <Text
-                                className={
-                                  'text-2xl ' +
-                                  (data.desc.search('Load') === -1
-                                    ? 'text-red-500'
-                                    : 'text-emerald-500')
-                                }
-                                style={fonts.bebas}>
-                                {data.desc.search('Load') === -1
-                                  ? `- ₱${data.amount}.00`
-                                  : `+ ₱${data.amount}.00`}
-                              </Text>
-                            </View>
-                          </View>
+                          </TouchableWithoutFeedback>
                         ))
                     ) : (
                       <View className="w-full h-[300px] bg-white flex flex-col rounded-xl justify-center items-center">
