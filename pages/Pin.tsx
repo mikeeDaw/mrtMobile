@@ -118,6 +118,7 @@ const Pin = ({navigation}: LoginProps) => {
                 handleChange(text, idx);
               }}
               onKeyPress={event => handleBackspace(event, idx)}
+              secureTextEntry={true}
             />
           ))}
         </View>

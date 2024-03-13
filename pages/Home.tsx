@@ -265,15 +265,37 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                         </Text>
                       </View>
 
-                      <View className="flex flex-row grow justify-end">
-                        <Text className="text-[#CBCBCB]">As of: </Text>
-                        <Text className="text-white">
-                          {new Date(card.updatedAt).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          })}
-                        </Text>
+                      <View className="flex flex-col grow items-end">
+                        <View className="py-1 pl-2 pr-3 bg-[#43434390] rounded-full mb-1 flex flex-row items-center">
+                          <View
+                            className={
+                              'bg-black w-[10px] h-[10px] rounded-full mr-2 ' +
+                              (card.tapped ? 'bg-[#44c32d' : 'bg-[#d4eb13]')
+                            }></View>
+                          {card.tapped ? (
+                            <View>
+                              <Text className="text-xs text-white">
+                                Onboarded
+                              </Text>
+                            </View>
+                          ) : (
+                            <View>
+                              <Text className="text-xs text-white">
+                                Offboarded
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <View className="flex flex-row">
+                          <Text className="text-[#CBCBCB]">As of: </Text>
+                          <Text className="text-white">
+                            {new Date(card.updatedAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                            })}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   </View>
