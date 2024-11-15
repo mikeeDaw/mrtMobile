@@ -36,16 +36,13 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
 
   const getCard = async () => {
     console.log('getting....');
-    const response = await fetch(
-      'https://mrt-line-3-api.onrender.com/beep/getOne',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({uid: addUID}),
+    const response = await fetch('https://mrt-backend.vercel.app/beep/getOne', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      body: JSON.stringify({uid: addUID}),
+    })
       .then(async jason => {
         return jason;
       })

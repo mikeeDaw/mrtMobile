@@ -65,7 +65,7 @@ const QrView = ({navigation, cardData}: QRProps) => {
   const scanning = async () => {
     // Check for Maintenance
     const constantsDoc = await fetch(
-      `https://mrt-line-3-api.onrender.com/constants/get`,
+      `https://mrt-backend.vercel.app/constants/get`,
       {
         method: 'GET',
         headers: {
@@ -85,19 +85,16 @@ const QrView = ({navigation, cardData}: QRProps) => {
     // Tap Logic
     if (passMethod === 'in') {
       if (!cardData.tapped) {
-        const data = await fetch(
-          'https://mrt-line-3-api.onrender.com/beep/tapIn',
-          {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              uid: cardData.uid,
-              origin: originStat.toUpperCase(),
-            }),
+        const data = await fetch('https://mrt-backend.vercel.app/beep/tapIn', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        )
+          body: JSON.stringify({
+            uid: cardData.uid,
+            origin: originStat.toUpperCase(),
+          }),
+        })
           .then(async jason => {
             if (jason.status === 200) {
               DeviceEventEmitter.emit('Added');
@@ -118,7 +115,7 @@ const QrView = ({navigation, cardData}: QRProps) => {
     } else {
       if (cardData.tapped) {
         const data = await fetch(
-          'https://mrt-line-3-api.onrender.com/mobile/tapOut',
+          'https://mrt-backend.vercel.app/mobile/tapOut',
           {
             method: 'PATCH',
             headers: {

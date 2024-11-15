@@ -32,7 +32,7 @@ const LoggedView = ({navigation, setLog}: LogProps) => {
     console.log(cardUID, 'cards');
 
     const response = await fetch(
-      'https://mrt-line-3-api.onrender.com/beep/cards/mobile',
+      'https://mrt-backend.vercel.app/beep/cards/mobile',
       {
         method: 'POST',
         headers: {

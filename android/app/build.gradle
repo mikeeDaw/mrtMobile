@@ -92,9 +92,9 @@ android {
         }
         release {
             storeFile file('mikey.keystore')
-            storePassword 'password123'
-            keyAlias 'mrtLine3'
-            keyPassword 'password123'
+            storePassword 'Jury-7ig'
+            keyAlias 'mrtapp'
+            keyPassword 'Jury-7ig'
         }
     }
     buildTypes {
