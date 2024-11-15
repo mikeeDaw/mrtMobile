@@ -63,14 +63,26 @@ const QrView = ({navigation, cardData}: QRProps) => {
   };
 
   const scanning = async () => {
-    console.log(
-      cardData.uid,
-      cardData.balance,
-      cardData.tapped,
-      cardData.origin,
-      passMethod,
-      originStat,
-    );
+    // Check for Maintenance
+    const constantsDoc = await fetch(
+      `https://mrt-line-3-api.onrender.com/constants/get`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    ).then(async jason => {
+      if (jason.status === 200) {
+        return await jason.json();
+      }
+    });
+    if (constantsDoc.maintenance) {
+      Toast.error(`System in Maintenance.`, 'top');
+      return;
+    }
+
+    // Tap Logic
     if (passMethod === 'in') {
       if (!cardData.tapped) {
         const data = await fetch(
@@ -105,23 +117,27 @@ const QrView = ({navigation, cardData}: QRProps) => {
       }
     } else {
       if (cardData.tapped) {
-        const data = await fetch('http://10.200.53.115:4000/mobile/tapOut', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
+        const data = await fetch(
+          'https://mrt-line-3-api.onrender.com/mobile/tapOut',
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              uid: cardData.uid,
+              currentStation: originStat.toUpperCase(),
+              desc: `${cardData?.origin.toUpperCase()} - ${originStat.toUpperCase()}`,
+            }),
           },
-          body: JSON.stringify({
-            uid: cardData.uid,
-            currentStation: originStat.toUpperCase(),
-            desc: `${cardData?.origin.toUpperCase()} - ${originStat.toUpperCase()}`,
-          }),
-        }).then(async jason => {
+        ).then(async jason => {
           if (jason.status === 200) {
             let result = await jason.json();
             DeviceEventEmitter.emit('Added');
             Toast.success(`Tapped Out Successfully.`, 'top');
-            setTapOutShow(true);
             setTapOutVal(result);
+            console.log('Result is', result._doc.balance);
+            setTapOutShow(true);
           } else if (jason.status === 401) {
             Toast.error(`Insufficient Balance`, 'top');
           } else {
@@ -153,13 +169,18 @@ const QrView = ({navigation, cardData}: QRProps) => {
         corners![3].x >= 489 &&
         corners![3].y <= 497
       ) {
-        if (codes[0].value!.startsWith('{') && codes[0].value!.endsWith('}')) {
+        if (
+          codes[0].value!.startsWith('{"mrtOnline":"s94jdIsBS032hu7"') &&
+          codes[0].value!.endsWith('}')
+        ) {
           const value = JSON.parse(codes[0].value!);
-          console.log('OK!', codes[0].value!);
           setOriginStat(value.station);
           setPassMethod(value.pass);
           setTapValue(value);
           setTapModal(true);
+        } else {
+          Toast.error(`Invalid QR Code.`, 'top');
+          setTapModal(false);
         }
       }
 

@@ -1,6 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
+  AppState,
+  BackHandler,
   DeviceEventEmitter,
   SafeAreaView,
   ScrollView,
@@ -27,7 +29,8 @@ import LoggedView from './pages/LoggedView';
 import Pin from './pages/Pin';
 import Register from './pages/Register';
 import {storage} from './store/Storage';
-import QrView from './pages/QrView';
+import TimeOut from './components/TimeOut';
+import TimeOutModal from './components/TimeOutModal';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -43,6 +46,29 @@ function App(): React.JSX.Element {
   const Stack = createNativeStackNavigator<RootStackParamList>();
   const BotTab = createBottomTabNavigator();
   const [logged, setLogged] = useState(false);
+  const [showTimeOut, setShowTimeOut] = useState(false);
+  // For background closing
+  const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      clearTimeout(timeout);
+
+      if (appState.current === 'background') {
+        console.log('back');
+        // timeout = setTimeout(() => BackHandler.exitApp(), 3000);
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+      clearTimeout(timeout);
+    };
+  }, []);
 
   useEffect(() => {
     DeviceEventEmitter.addListener('SetLogOut', () => {
@@ -60,11 +86,16 @@ function App(): React.JSX.Element {
     <>
       <NavigationContainer>
         {logged ? (
-          <Stack.Navigator>
-            <Stack.Screen name="PinSuccess" options={{headerShown: false}}>
-              {props => <LoggedView {...props} setLog={setLogged} />}
-            </Stack.Screen>
-          </Stack.Navigator>
+          <TimeOut setShowTimeOut={setShowTimeOut}>
+            {showTimeOut && (
+              <TimeOutModal setTimeOut={setShowTimeOut} setLog={setLogged} />
+            )}
+            <Stack.Navigator>
+              <Stack.Screen name="PinSuccess" options={{headerShown: false}}>
+                {props => <LoggedView {...props} setLog={setLogged} />}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </TimeOut>
         ) : (
           <Stack.Navigator
             initialRouteName={storage.getString('PIN') ? 'Login' : 'Register'}>

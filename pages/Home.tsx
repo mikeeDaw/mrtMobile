@@ -18,6 +18,7 @@ import {storage} from '../store/Storage';
 import {HomeProps} from '../types/Types';
 import Thrash from '../svg/Thrash';
 import Unlink from '../components/Unlink';
+import ToastManager, {Toast} from 'toastify-react-native';
 
 const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
   const [addUID, setAddUID] = useState('');
@@ -34,6 +35,7 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
   };
 
   const getCard = async () => {
+    console.log('getting....');
     const response = await fetch(
       'https://mrt-line-3-api.onrender.com/beep/getOne',
       {
@@ -47,52 +49,73 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
       .then(async jason => {
         return jason;
       })
-      .catch(error => error);
+      .catch(error => {
+        return error;
+      });
     return response;
   };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
-      //setFlag(!addFlag);
       DeviceEventEmitter.emit('Added');
     }, 2000);
     setRefreshing(false);
-    console.log('tapos');
   }, []);
 
   const handleAddCard = async () => {
+    let tmpJason = storage.getString('cards') ?? undefined;
+    let convJason = tmpJason ? JSON.parse(tmpJason) : {};
+    let alreadyLinked = Object.keys(convJason).find(key => key !== addUID);
+
+    if (!alreadyLinked && Object.keys(convJason).length !== 0) {
+      Toast.error(`Card Is Already Linked.`, 'top');
+      return;
+    }
+    console.log('outside', addUID, addName);
     if (addUID !== '' && addName !== '') {
       let resp = await getCard();
+      console.log('nagwait');
+      console.log(resp);
       if (resp.status === 200) {
-        let tmpJason = storage.getString('cards') ?? undefined;
-        let convJason = tmpJason ? JSON.parse(tmpJason) : {};
         let cardJason = {...convJason, [addUID]: addName};
         storage.set('cards', JSON.stringify(cardJason));
-        console.log(cardJason);
+        DeviceEventEmitter.emit('Added');
+        console.log(cardJason, 'cardJason');
         setAddName('');
         setAddUID('');
         setShowAdd(false);
+        setSelectedID(null);
         Keyboard.dismiss();
-
-        DeviceEventEmitter.emit('Added');
+        Toast.success(`${addName} was Linked!`, 'top');
       } else {
-        console.log('nagerror');
+        Toast.error(`Card Not Found.`, 'top');
       }
     } else {
-      console.log('missing input');
+      console.log('Sa else');
+      Toast.error(`Missing Input.`, 'top');
     }
   };
 
   return (
     <SafeAreaView>
       <View className="relative h-[100vh] bg-[#F9F9F9]">
+        <View className="z-50">
+          <ToastManager
+            position={'top'}
+            positionValue={80}
+            theme={'dark'}
+            duration={2500}
+          />
+        </View>
+
         {/* Unlink Card */}
         {showUnlink && (
           <Unlink
             setShowUnlink={setShowUnlink}
             showUnlink={showUnlink}
             deleteID={deleteID}
+            setSelected={setSelectedID}
           />
         )}
 
@@ -147,7 +170,7 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                   style={fonts.montSemi}
                   keyboardType="default"
                   maxLength={15}
-                  placeholder="(Optional)"
+                  placeholder="*Required"
                   onChangeText={text => handleChangeName(text)}
                   value={addName}
                 />
@@ -181,16 +204,17 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                   className="w-full bg-[#716bff] h-[160px] relative rounded-3xl overflow-hidden py-2 px-3 mb-2"
                   key={idx + 1000}
                   onPress={() => {
+                    storage.set('selected', card.uid);
                     setSelectedID(card);
                   }}>
                   <View
                     className={
                       'flex w-[27px] z-30 h-[27px] p-1.5 bg-white absolute right-5 top-4 justify-center items-center rounded-full ' +
-                      (selectedID.uid === card.uid
+                      (selectedID && selectedID.uid === card.uid
                         ? 'bg-emerald-500'
                         : 'bg-[#00000020] border border-[#00000030] ')
                     }>
-                    {selectedID.uid === card.uid && <Check />}
+                    {selectedID && selectedID.uid === card.uid && <Check />}
                   </View>
                   <TouchableOpacity
                     className="absolute top-4 right-16 rounded-full translate-y-[-7px] p-1 z-30"
@@ -198,7 +222,10 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                       let storg = storage.getString('cards');
                       let storgJason = JSON.parse(storg!);
                       setShowUnlink(true);
-                      setDeleteID({uid: card.uid, name: storgJason[card.uid]});
+                      setDeleteID({
+                        uid: card.uid,
+                        name: storgJason[card.uid],
+                      });
                     }}>
                     <Thrash width={30} height={30} stroke={'#ff6c6c'} />
                   </TouchableOpacity>
@@ -238,15 +265,37 @@ const Home = ({beepCards, selectedID, setSelectedID}: HomeProps) => {
                         </Text>
                       </View>
 
-                      <View className="flex flex-row grow justify-end">
-                        <Text className="text-[#CBCBCB]">As of: </Text>
-                        <Text className="text-white">
-                          {new Date(card.updatedAt).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          })}
-                        </Text>
+                      <View className="flex flex-col grow items-end">
+                        <View className="py-1 pl-2 pr-3 bg-[#43434390] rounded-full mb-1 flex flex-row items-center">
+                          <View
+                            className={
+                              'bg-black w-[10px] h-[10px] rounded-full mr-2 ' +
+                              (card.tapped ? 'bg-[#44c32d' : 'bg-[#d4eb13]')
+                            }></View>
+                          {card.tapped ? (
+                            <View>
+                              <Text className="text-xs text-white">
+                                Onboarded
+                              </Text>
+                            </View>
+                          ) : (
+                            <View>
+                              <Text className="text-xs text-white">
+                                Offboarded
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <View className="flex flex-row">
+                          <Text className="text-[#CBCBCB]">As of: </Text>
+                          <Text className="text-white">
+                            {new Date(card.updatedAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                            })}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   </View>
